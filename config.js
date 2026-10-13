@@ -1,7 +1,7 @@
 // Satu-satunya file yang perlu diubah setelah Apps Script di-deploy.
 window.APP_CONFIG = {
   // Tempel URL Web App dari Apps Script (berakhiran /exec)
-  API_URL: 'https://script.google.com/macros/s/ISI_ID_DEPLOYMENT/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbxw9sDrRZvJSMvhTIOtV4fWvkavHNyjEsnZkfcDO0PuOA-6GbwEeDEJQfE_myp2jXU/exec',
 
   NAMA_APLIKASI: 'Cari Surat Mahasiswa',
   NAMA_INSTANSI: 'Jurusan Gizi · Poltekkes Kemenkes Makassar',
