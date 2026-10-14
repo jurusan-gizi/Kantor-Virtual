@@ -1,7 +1,7 @@
 // Service worker: menyimpan tampilan aplikasi agar cepat dibuka & bisa di-install.
 // Data surat TIDAK pernah disimpan di cache.
 // Naikkan nomor versi setiap kali file aplikasi diubah.
-const VERSI = 'surat-v2';
+const VERSI = 'surat-v3';
 const ASET = ['./', 'index.html', 'style.css', 'app.js', 'config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 

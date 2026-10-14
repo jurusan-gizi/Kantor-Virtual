@@ -7,7 +7,8 @@
   const $ = (id) => document.getElementById(id);
 
   // Kredensial hanya disimpan di memori (bukan localStorage) — aman di HP pinjaman.
-  let sesi = null;      // { nim, tgl }
+  let sesi = null;      // { nim, tgl } atau { nim, token } bila lewat Gizi-Link
+  const SSO = window.GiziSSO || null;
   let urlPdf = null;
 
   // ---------- Inisialisasi ----------
@@ -22,6 +23,8 @@
 
   $('form-cari').addEventListener('submit', onCari);
   $('btn-keluar').addEventListener('click', keluar);
+  if (SSO) $('btn-gizilink').addEventListener('click', () => SSO.masuk(location.href.split('#')[0]));
+  else $('btn-gizilink').hidden = true;
   $('btn-tutup').addEventListener('click', tutupPenampil);
   $('penampil').addEventListener('click', (e) => { if (e.target.id === 'penampil') tutupPenampil(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') tutupPenampil(); });
@@ -32,6 +35,25 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+
+  masukOtomatis();
+
+  // ---------- Gizi-Link: login sekali ----------
+  async function masukOtomatis() {
+    const s = SSO && SSO.get();
+    if (!s) return;
+    $('btn-cari').disabled = true;
+    try {
+      const res = await panggilApi({ aksi: 'cari', token: s.token });
+      if (!res.ok) { tampilPesan(res.pesan || 'Gagal masuk otomatis. Silakan isi NIM & tanggal lahir.'); return; }
+      sesi = { nim: rapikanNim(s.nim), token: s.token };
+      tampilHasil(res);
+    } catch (err) {
+      // Server tak terjangkau: biarkan form manual tetap bisa dipakai.
+    } finally {
+      $('btn-cari').disabled = false;
+    }
   }
 
   // ---------- Form ----------
@@ -116,7 +138,9 @@
   async function ambilSurat(s, btn) {
     sibuk(btn, true, '');
     try {
-      const res = await panggilApi({ aksi: 'unduh', nim: sesi.nim, tgl: sesi.tgl, id: s.id });
+      const res = await panggilApi(sesi.token
+        ? { aksi: 'unduh', token: sesi.token, id: s.id }
+        : { aksi: 'unduh', nim: sesi.nim, tgl: sesi.tgl, id: s.id });
       if (!res.ok) { alert(res.pesan || 'Surat tidak dapat dibuka.'); return; }
       bukaPenampil(res, s);
     } catch (err) {
@@ -150,6 +174,7 @@
   function keluar() {
     tutupPenampil();
     if (urlPdf) { URL.revokeObjectURL(urlPdf); urlPdf = null; }
+    if (sesi && sesi.token && SSO) SSO.keluar(false);   // keluar juga dari Gizi-Link di perangkat ini
     sesi = null;
     $('form-cari').reset();
     $('daftar-surat').innerHTML = '';
